@@ -1,26 +1,29 @@
 package repository
 
-import dtos.VehicleDTO
+
 import javax.inject.{Inject, Singleton}
 import models.Vehicle
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.mvc.Result
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 @Singleton
-class VehicleRepository @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
+class VehicleRepository @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
+(implicit executionContext: ExecutionContext)
+  extends HasDatabaseConfigProvider[JdbcProfile] with IVehicleRepository {
 
   import profile.api._
 
   private val Vehicles = TableQuery[VehiclesTable]
 
-  def all() : Future[Seq[Vehicle]] = db.run(Vehicles.result)
+  override def all() : Future[Seq[Vehicle]] = db.run(Vehicles.result)
 
-  def insert(vehicleDTO: VehicleDTO): Future[Unit] = {
-    val vehicle = new Vehicle(0,vehicleDTO.licence,
-      vehicleDTO.vehicle_type,vehicleDTO.engine)
-    db.run(Vehicles += vehicle).map { _ => () }
+  override def insert(vehicle: Vehicle): Future[Int] = {
+    db.run(Vehicles += vehicle)
   }
+
+  //.map { _ => () }
 
   private class VehiclesTable(tag: Tag) extends Table[Vehicle](tag, "Vehicle") {
 

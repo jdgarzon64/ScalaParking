@@ -1,19 +1,17 @@
 package controllers
 
 
+import business.IParkingService
 import dtos.VehicleDTO
 import models.Vehicle
 import javax.inject._
 import play.api.mvc._
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
-import repository.VehicleRepository
-
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ParkingController @Inject()
-(cc: ControllerComponents, vehicleRepository: VehicleRepository)
+(cc: ControllerComponents, iParkingService: IParkingService)
 (implicit executionContext: ExecutionContext)
   extends AbstractController(cc) {
 
@@ -22,8 +20,8 @@ class ParkingController @Inject()
   }
 
   private def insertParking(vehicle: VehicleDTO): Future[Result] = {
-    vehicleRepository.insert(vehicle)
-      .map(_ => Ok(""))
+    iParkingService.insert(vehicle)
+      .map(s => Ok(Json.toJson(s)))
       .recoverWith {
         case error: Exception => {
           Future.successful( InternalServerError(error.getMessage) )
@@ -33,7 +31,7 @@ class ParkingController @Inject()
 
   def all() = Action.async {implicit request: Request[AnyContent] =>
     // val vehiclesList = getAllVehicles()
-    val vehiclesList : Future[Seq[Vehicle]] = vehicleRepository.all()
+    val vehiclesList : Future[Seq[Vehicle]] = iParkingService.all()
     vehiclesList.map(s => Ok(Json.toJson(s) ))
   }
 /*
@@ -54,14 +52,14 @@ class ParkingController @Inject()
   }
 */
 
-  /*
+/*
     private def getAllVehicles(): Future[Seq[Vehicle]] = {
-      vehicleRepository.all().map(_ => Ok ("")).recoverWith{
+      iParkingService.all().map(_ => Ok ("")).recoverWith{
         case error: Exception => {
           Future.successful( InternalServerError(error.getMessage) )
           Future.successful( InternalServerError(error.getMessage) )
         }
       }
     }
-    */
+*/
 }
